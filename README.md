@@ -144,6 +144,7 @@ Others
 | `MAKE_MEDLEYS` | Set to `True` if descriptions should be combined into medleys. | `False` |
 | `N_MEDLEY_PIECES` | Number of pieces to be combined into one | 2 |
 | `N_MEDLEY_BARS` | Number of bars to take from each piece | 16 |
+| `VERBOSE` | Logging level, set to 0 for silent execution | 2 |
   
 
 ### Evaluation (`evaluate.py`)

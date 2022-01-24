@@ -27,7 +27,7 @@ N_MEDLEY_BARS = int(os.getenv('N_MEDLEY_BARS', 16))
 CHECKPOINT = os.getenv('CHECKPOINT', None)
 VAE_CHECKPOINT = os.getenv('VAE_CHECKPOINT', None)
 BATCH_SIZE = int(os.getenv('BATCH_SIZE', 1))
-VERBOSE = int(os.getenv('VERBOSE', 1))
+VERBOSE = int(os.getenv('VERBOSE', 2))
 
 def reconstruct_sample(model, batch, 
   initial_context=1, 
