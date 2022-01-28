@@ -148,6 +148,8 @@ Others
   
 
 ### Evaluation (`evaluate.py`)
+| Variable | Description | Default value |
+|-|-|-|
 | `SAMPLE_DIR` | Folder containing generated samples which should be evaluated | `./samples` |
 | `OUT_FILE` | CSV file to which a detailed log of all metrics will be saved to | `./metrics.csv` |
 | `MAX_SAMPLES` | Limit the number of samples to be used for computing evaluation metrics | 1024 |
