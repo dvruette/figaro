@@ -1,6 +1,12 @@
 # FIGARO: Generating Symbolic Music with Fine-Grained Artistic Control
 by Dimitri von Rütte, Luca Biggio, Yannic Kilcher, Thomas Hofmann
 
+Read the paper on [arXiv](https://arxiv.org/abs/2201.10936).
+
+Listen to the samples on [Soundcloud](https://soundcloud.com/user-751999449/sets/figaro-generating-symbolic-music-with-fine-grained-artistic-control).
+
+---
+
 - [FIGARO: Generating Symbolic Music with Fine-Grained Artistic Control](#figaro-generating-symbolic-music-with-fine-grained-artistic-control)
   - [Getting started](#getting-started)
     - [Setup](#setup)
