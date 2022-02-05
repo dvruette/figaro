@@ -14,9 +14,9 @@ from constants import (
   NOTE_DENSITY_KEY, MEAN_PITCH_KEY, MEAN_VELOCITY_KEY, MEAN_DURATION_KEY
 )
 
-
-CACHE_PATH = os.getenv('CACHE_PATH', os.getenv('SCRATCH', os.getenv('TMPDIR', None)))
-LATENT_CACHE_PATH = os.getenv('LATENT_CACHE_PATH', os.path.join(os.getenv('SCRATCH', os.getenv('TMPDIR', None)), 'latent'))
+TMP_PATH = '/tmp/'
+CACHE_PATH = os.getenv('CACHE_PATH', os.getenv('SCRATCH', os.getenv('TMPDIR', TMP_PATH)))
+LATENT_CACHE_PATH = os.getenv('LATENT_CACHE_PATH', os.path.join(os.getenv('SCRATCH', os.getenv('TMPDIR', TMP_PATH)), 'latent'))
 
 class MidiDataModule(pl.LightningDataModule):
   def __init__(self, 
