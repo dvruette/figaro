@@ -12,7 +12,7 @@ from datasets import MidiDataset, SeqCollator
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-ROOT_DIR = os.getenv('ROOT_DIR', os.path.join(os.getenv('TMPDIR', '..'), 'lmd_full'))
+ROOT_DIR = os.getenv('ROOT_DIR', os.path.join(os.getenv('TMPDIR', './temp'), 'lmd_full'))
 MAX_N_FILES = int(os.getenv('MAX_N_FILES', '-1'))
 
 BATCH_SIZE = int(os.getenv('BATCH_SIZE', '8'))
