@@ -1,7 +1,4 @@
 # FIGARO: Generating Symbolic Music with Fine-Grained Artistic Control
-by Dimitri von Rütte, Luca Biggio, Yannic Kilcher, Thomas Hofmann
-
-Read the paper on [arXiv](https://arxiv.org/abs/2201.10936).
 
 Listen to the samples on [Soundcloud](https://soundcloud.com/user-751999449/sets/figaro-generating-symbolic-music-with-fine-grained-artistic-control).
 
@@ -103,6 +100,9 @@ Example usage:
 ```bash
 SAMPLE_DIR=./samples/figaro-expert python src/evaluate.py
 ```
+
+It has been pointed out that the order of the dataset files (from which the splits are calculated) is non-deterministic and depends on the OS.
+To address this and to ensure reproducibility, I have added the exact files used for training/validation/testing in the respective file in the `splits` folder.
 
 ## Parameters
 The following environment variables are available for controlling hyperparameters beyond their default value.
