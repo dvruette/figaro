@@ -1,13 +1,10 @@
+import argparse
 import os, glob
 from statistics import NormalDist
 import pandas as pd
 import numpy as np
 
 import input_representation as ir
-
-SAMPLE_DIR = os.getenv('SAMPLE_DIR', './samples')
-OUT_FILE = os.getenv('OUT_FILE', './metrics.csv')
-MAX_SAMPLES = int(os.getenv('MAX_SAMPLES', 1024))
 
 METRICS = [
   'inst_prec', 'inst_rec', 'inst_f1', 
@@ -24,12 +21,21 @@ keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 qualities = ['maj', 'min', 'dim', 'aug', 'dom7', 'maj7', 'min7', 'None']
 CHORDS = [f"{k}:{q}" for k in keys for q in qualities] + ['N:N']
 
+
+def parse_args():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--samples_dir', type=str, default="./samples")
+  parser.add_argument('--output_file', type=str, default="./metrics.csv")
+  parser.add_argument('--max_samples', type=int, default=1024)
+  args = parser.parse_args()
+  return args
+
 def get_group_id(file):
   # change this depending on name of generated samples
   name = os.path.basename(file)
   return name.split('.')[0]
 
-def get_file_groups(path, max_samples=MAX_SAMPLES):
+def get_file_groups(path, max_samples=1024):
   # change this depending on file structure of generated samples
   files = glob.glob(os.path.join(path, '*.mid'), recursive=True)
   assert len(files), f"provided directory was empty: {path}"
@@ -160,7 +166,8 @@ def overlapping_area(mu1, sigma1, mu2, sigma2, eps=0.01):
 
 
 def main():
-  file_groups = get_file_groups(SAMPLE_DIR)
+  args = parse_args()
+  file_groups = get_file_groups(args.samples_dir, max_samples=args.max_samples)
 
   metrics = pd.DataFrame()
   for sample_id, group in enumerate(file_groups):
@@ -237,13 +244,13 @@ def main():
       sample_id+1, micro_avg['inst_f1'], micro_avg['chord_f1'], micro_avg['pitch_oa'], micro_avg['velocity_oa'], micro_avg['duration_oa'], micro_avg['chroma_sim'], micro_avg['groove_sim']
     ))
   
-  os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
-  metrics.to_csv(OUT_FILE)
+  os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
+  metrics.to_csv(args.output_file)
 
   summary_keys = ['inst_f1', 'chord_f1', 'time_sig_acc', 'pitch_oa', 'velocity_oa', 'duration_oa', 'chroma_sim', 'groove_sim']
   summary = metrics[summary_keys + ['id']].groupby('id').mean().mean()
 
-  nsq_err = metrics.groupby('id').mean()['note_density_nsq_err']
+  nsq_err = metrics.groupby('id')['note_density_nsq_err'].mean()
   summary['note_density_nrmse'] = np.sqrt(nsq_err).mean()
 
   print('***** SUMMARY *****')
