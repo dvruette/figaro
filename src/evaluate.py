@@ -41,7 +41,7 @@ def get_file_groups(path, max_samples=1024):
   assert len(files), f"provided directory was empty: {path}"
 
   samples = sorted(files)
-  origs = sorted([os.path.join(path, 'gt', os.path.basename(file)) for file in files])
+  origs = sorted([os.path.join(path, 'ground_truth', os.path.basename(file)) for file in files])
   pairs = list(zip(origs, samples))
 
   pairs = list(filter(lambda pair: os.path.exists(pair[0]), pairs))
