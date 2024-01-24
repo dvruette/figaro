@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data import DataLoader, IterableDataset
+from torchdata.datapipes.iter import IterableWrapper
 from torch.nn.utils.rnn import pad_sequence
 import pytorch_lightning as pl
 import math
@@ -72,6 +73,8 @@ class MidiDataModule(pl.LightningDataModule):
 
     # Use a shuffled dataset only for training
     # self.train_ds = torch.utils.data.datapipes.iter.combinatorics.ShuffleIterDataPipe(self.train_ds, buffer_size=2048)
+    self.train_ds = IterableWrapper(self.train_ds)
+    self.train_ds.shuffle(buffer_size=2048)
 
     self.collator = SeqCollator(pad_token=self.vocab.to_i(PAD_TOKEN), context_size=self.max_len)
 

@@ -395,7 +395,7 @@ class VqVaeModule(pl.LightningModule):
 
     def configure_optimizers(self):
         # set LR to 1, scale with LambdaLR scheduler
-        optimizer = transformers.AdamW(self.parameters(), lr=1, weight_decay=0.01)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=1, weight_decay=0.01)
 
         if self.lr_schedule == 'sqrt_decay':
             # constant warmup, then 1/sqrt(n) decay starting from the initial LR
