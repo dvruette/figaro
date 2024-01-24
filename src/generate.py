@@ -1,10 +1,10 @@
-
+import argparse
 import os
 import glob
-import time
 import torch
 import random
 from torch.utils.data import DataLoader
+from transformers.models.bert.modeling_bert import BertAttention
 
 from models.vae import VqVaeModule
 from models.seq2seq import Seq2SeqModule
@@ -12,23 +12,68 @@ from datasets import MidiDataset, SeqCollator
 from utils import medley_iterator
 from input_representation import remi2midi
 
-MODEL = os.getenv('MODEL', '')
 
-ROOT_DIR = os.getenv('ROOT_DIR', './lmd_full')
-OUTPUT_DIR = os.getenv('OUTPUT_DIR', './samples')
-MAX_N_FILES = int(float(os.getenv('MAX_N_FILES', -1)))
-MAX_ITER = int(os.getenv('MAX_ITER', 16_000))
-MAX_BARS = int(os.getenv('MAX_BARS', 32))
+def parse_args():
+  parser = argparse.ArgumentParser()
+  # parser.add_argument('--model', type=str, required=True, help="Model name (one of 'figaro', 'figaro-expert', 'figaro-learned', 'figaro-no-inst', 'figaro-no-chord', 'figaro-no-meta')")
+  # parser.add_argument('--checkpoint', type=str, required=True, help="Path to the model checkpoint")
+  parser.add_argument('--model', type=str, default="figaro-expert")
+  parser.add_argument('--checkpoint', type=str, default="../figaro-expert.ckpt")
+  parser.add_argument('--vae_checkpoint', type=str, default=None, help="Path to the VQ-VAE model checkpoint (optional)")
+  parser.add_argument('--lmd_dir', type=str, default='./lmd_full', help="Path to the root directory of the LakhMIDI dataset")
+  parser.add_argument('--output_dir', type=str, default='./samples', help="Path to the output directory")
+  parser.add_argument('--max_n_files', type=int, default=-1)
+  parser.add_argument('--max_iter', type=int, default=16_000)
+  parser.add_argument('--max_bars', type=int, default=32)
+  parser.add_argument('--make_medleys', type=bool, default=False)
+  parser.add_argument('--n_medley_pieces', type=int, default=2)
+  parser.add_argument('--n_medley_bars', type=int, default=16)
+  parser.add_argument('--batch_size', type=int, default=1)
+  parser.add_argument('--verbose', type=int, default=2)
+  args = parser.parse_args()
+  return args
 
-MAKE_MEDLEYS = os.getenv('MAKE_MEDLEYS', 'False') == 'True'
-N_MEDLEY_PIECES = int(os.getenv('N_MEDLEY_PIECES', 2))
-N_MEDLEY_BARS = int(os.getenv('N_MEDLEY_BARS', 16))
-  
-CHECKPOINT = os.getenv('CHECKPOINT', None)
-VAE_CHECKPOINT = os.getenv('VAE_CHECKPOINT', None)
-BATCH_SIZE = int(os.getenv('BATCH_SIZE', 1))
-VERBOSE = int(os.getenv('VERBOSE', 2))
 
+def load_old_or_new_checkpoint(model_class, checkpoint):
+  # assuming transformers>=4.36.0
+  pl_ckpt = torch.load(checkpoint, map_location="cpu")
+  kwargs = pl_ckpt['hyper_parameters']
+  if 'flavor' in kwargs:
+    del kwargs['flavor']
+  model = model_class(**kwargs)
+  state_dict = pl_ckpt['state_dict']
+  # position_ids are no longer saved in the state_dict starting with transformers==4.31.0
+  state_dict = {k: v for k, v in state_dict.items() if not k.endswith('embeddings.position_ids')}
+  try:
+    # succeeds for checkpoints trained with transformers>4.13.0
+    model.load_state_dict(state_dict)
+  except RuntimeError:
+    # work around a breaking change introduced in transformers==4.13.0, which fixed the position_embedding_type of cross-attention modules "absolute"
+    config = model.transformer.decoder.bert.config
+    for layer in model.transformer.decoder.bert.encoder.layer:
+      layer.crossattention = BertAttention(config, position_embedding_type=config.position_embedding_type)
+    model.load_state_dict(state_dict)
+  model.freeze()
+  model.eval()
+  return model
+
+
+def load_model(checkpoint, vae_checkpoint=None, device='auto'):
+  if device == 'auto':
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+  vae_module = None
+  if vae_checkpoint:
+    vae_module = load_old_or_new_checkpoint(VqVaeModule, vae_checkpoint)
+    vae_module.cpu()
+
+  model = load_old_or_new_checkpoint(Seq2SeqModule, checkpoint)
+  model.to(device)
+
+  return model, vae_module
+
+
+@torch.no_grad()
 def reconstruct_sample(model, batch, 
   initial_context=1, 
   output_dir=None, 
@@ -73,61 +118,54 @@ def reconstruct_sample(model, batch,
       n_fatal += 1
 
   if output_dir:
-    os.makedirs(os.path.join(output_dir, 'gt'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'ground_truth'), exist_ok=True)
     for pm, pm_hat, file in zip(pms, pms_hat, batch['files']):
       if verbose:
         print(f"Saving to {output_dir}/{file}")
-      pm.write(os.path.join(output_dir, 'gt', file))
+      pm.write(os.path.join(output_dir, 'ground_truth', file))
       pm_hat.write(os.path.join(output_dir, file))
 
   return events
 
 
 def main():
-  if MAKE_MEDLEYS:
-    max_bars = N_MEDLEY_PIECES * N_MEDLEY_BARS
+  args = parse_args()
+  if args.make_medleys:
+    max_bars = args.n_medley_pieces * args.n_medley_bars
   else:
-    max_bars = MAX_BARS
+    max_bars = args.max_bars
 
-  if OUTPUT_DIR:
+  if args.output_dir:
     params = []
-    if MAKE_MEDLEYS:
-      params.append(f"n_pieces={N_MEDLEY_PIECES}")
-      params.append(f"n_bars={N_MEDLEY_BARS}")
-    if MAX_ITER > 0:
-      params.append(f"max_iter={MAX_ITER}")
-    if MAX_BARS > 0:
-      params.append(f"max_bars={MAX_BARS}")
-    output_dir = os.path.join(OUTPUT_DIR, MODEL, ','.join(params))
+    if args.make_medleys:
+      params.append(f"n_pieces={args.n_medley_pieces}")
+      params.append(f"n_bars={args.n_medley_bars}")
+    if args.max_iter > 0:
+      params.append(f"max_iter={args.max_iter}")
+    if args.max_bars > 0:
+      params.append(f"max_bars={args.max_bars}")
+    output_dir = os.path.join(args.output_dir, args.model, ','.join(params))
   else:
-    raise ValueError("OUTPUT_DIR must be specified.")
+    raise ValueError("args.output_dir must be specified.")
 
   print(f"Saving generated files to: {output_dir}")
 
-  if VAE_CHECKPOINT:
-    vae_module = VqVaeModule.load_from_checkpoint(VAE_CHECKPOINT)
-    vae_module.cpu()
-  else:
-    vae_module = None
-
-  model = Seq2SeqModule.load_from_checkpoint(CHECKPOINT)
-  model.freeze()
-  model.eval()
+  model, vae_module = load_model(args.checkpoint, args.vae_checkpoint)
 
 
-  midi_files = glob.glob(os.path.join(ROOT_DIR, '**/*.mid'), recursive=True)
+  midi_files = glob.glob(os.path.join(args.lmd_dir, '**/*.mid'), recursive=True)
   
   dm = model.get_datamodule(midi_files, vae_module=vae_module)
   dm.setup('test')
   midi_files = dm.test_ds.files
   random.shuffle(midi_files)
 
-  if MAX_N_FILES > 0:
-    midi_files = midi_files[:MAX_N_FILES]
+  if args.max_n_files > 0:
+    midi_files = midi_files[:args.max_n_files]
 
 
   description_options = None
-  if MODEL in ['figaro-no-inst', 'figaro-no-chord', 'figaro-no-meta']:
+  if args.model in ['figaro-no-inst', 'figaro-no-chord', 'figaro-no-meta']:
     description_options = model.description_options
 
   dataset = MidiDataset(
@@ -139,15 +177,13 @@ def main():
     vae_module=vae_module
   )
 
-
-  start_time = time.time()
   coll = SeqCollator(context_size=-1)
-  dl = DataLoader(dataset, batch_size=BATCH_SIZE, collate_fn=coll)
+  dl = DataLoader(dataset, batch_size=args.batch_size, collate_fn=coll)
 
-  if MAKE_MEDLEYS:
+  if args.make_medleys:
     dl = medley_iterator(dl, 
-      n_pieces=N_MEDLEY_BARS, 
-      n_bars=N_MEDLEY_BARS, 
+      n_pieces=args.n_medley_pieces, 
+      n_bars=args.n_medley_bars, 
       description_flavor=model.description_flavor
     )
   
@@ -155,9 +191,9 @@ def main():
     for batch in dl:
       reconstruct_sample(model, batch, 
         output_dir=output_dir, 
-        max_iter=MAX_ITER, 
+        max_iter=args.max_iter, 
         max_bars=max_bars,
-        verbose=VERBOSE,
+        verbose=args.verbose,
       )
 
 if __name__ == '__main__':

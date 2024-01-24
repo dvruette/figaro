@@ -71,7 +71,7 @@ class MidiDataModule(pl.LightningDataModule):
     )
 
     # Use a shuffled dataset only for training
-    self.train_ds = torch.utils.data.datapipes.iter.combinatorics.ShuffleIterDataPipe(self.train_ds, buffer_size=2048)
+    # self.train_ds = torch.utils.data.datapipes.iter.combinatorics.ShuffleIterDataPipe(self.train_ds, buffer_size=2048)
 
     self.collator = SeqCollator(pad_token=self.vocab.to_i(PAD_TOKEN), context_size=self.max_len)
 
@@ -80,7 +80,8 @@ class MidiDataModule(pl.LightningDataModule):
                       collate_fn=self.collator, 
                       batch_size=self.batch_size, 
                       pin_memory=self.pin_memory, 
-                      num_workers=self.num_workers)
+                      num_workers=self.num_workers,
+                      shuffle=True)
 
   def val_dataloader(self):
     return DataLoader(self.valid_ds, 
