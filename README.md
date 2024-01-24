@@ -29,10 +29,10 @@ Prerequisites:
 ### Setup
 1. Clone this repository to your disk
 3. Install required packages (see requirements.txt).
-With Conda:
+With `venv`:
 ```bash
-conda create --name figaro python=3.9
-conda activate figaro
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
