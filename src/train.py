@@ -199,23 +199,20 @@ def main():
 
   lr_monitor = pl.callbacks.LearningRateMonitor(logging_interval='step')
 
+  swa_callback = pl.callbacks.StochasticWeightAveraging(swa_lrs=0.05)
+
   trainer = pl.Trainer(
-    gpus=0 if device.type == 'cpu' else torch.cuda.device_count(),
-    accelerator='dp',
+    devices=1 if device.type == 'cpu' else torch.cuda.device_count(),
+    accelerator='auto',
     profiler='simple',
-    callbacks=[checkpoint_callback, lr_monitor],
+    callbacks=[checkpoint_callback, lr_monitor, swa_callback],
     max_epochs=EPOCHS,
     max_steps=MAX_TRAINING_STEPS,
     log_every_n_steps=max(100, min(25*ACCUMULATE_GRADS, 200)),
     val_check_interval=max(500, min(300*ACCUMULATE_GRADS, 1000)),
     limit_val_batches=64,
-    auto_scale_batch_size=False,
-    auto_lr_find=False,
     accumulate_grad_batches=ACCUMULATE_GRADS,
-    stochastic_weight_avg=True,
     gradient_clip_val=1.0, 
-    terminate_on_nan=True,
-    resume_from_checkpoint=CHECKPOINT
   )
 
   trainer.fit(model, datamodule)

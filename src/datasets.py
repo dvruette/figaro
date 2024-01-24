@@ -76,26 +76,33 @@ class MidiDataModule(pl.LightningDataModule):
     self.collator = SeqCollator(pad_token=self.vocab.to_i(PAD_TOKEN), context_size=self.max_len)
 
   def train_dataloader(self):
-    return DataLoader(self.train_ds, 
-                      collate_fn=self.collator, 
-                      batch_size=self.batch_size, 
-                      pin_memory=self.pin_memory, 
-                      num_workers=self.num_workers,
-                      shuffle=True)
+    return DataLoader(
+      self.train_ds,
+      collate_fn=self.collator,
+      batch_size=self.batch_size,
+      pin_memory=self.pin_memory,
+      num_workers=self.num_workers,
+      shuffle=True,
+    )
 
   def val_dataloader(self):
-    return DataLoader(self.valid_ds, 
-                      collate_fn=self.collator, 
-                      batch_size=self.batch_size, 
-                      pin_memory=self.pin_memory, 
-                      num_workers=self.num_workers)
+    return DataLoader(
+      self.valid_ds,
+      collate_fn=self.collator,
+      batch_size=self.batch_size,
+      pin_memory=self.pin_memory,
+      num_workers=self.num_workers,
+      persistent_workers=True,
+    )
 
   def test_dataloader(self):
-    return DataLoader(self.test_ds, 
-                      collate_fn=self.collator, 
-                      batch_size=self.batch_size, 
-                      pin_memory=self.pin_memory, 
-                      num_workers=self.num_workers)
+    return DataLoader(
+      self.test_ds,
+      collate_fn=self.collator,
+      batch_size=self.batch_size,
+      pin_memory=self.pin_memory,
+      num_workers=self.num_workers,
+    )
 
 
 def _get_split(files, worker_info):
