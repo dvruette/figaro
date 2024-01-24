@@ -2,6 +2,8 @@
 
 Listen to the samples on [Soundcloud](https://soundcloud.com/user-751999449/sets/figaro-generating-symbolic-music-with-fine-grained-artistic-control).
 
+Paper: https://openreview.net/forum?id=NyR8OZFHw6i
+
 ---
 
 - [FIGARO: Generating Symbolic Music with Fine-Grained Artistic Control](#figaro-generating-symbolic-music-with-fine-grained-artistic-control)
