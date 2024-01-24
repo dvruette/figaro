@@ -83,12 +83,12 @@ This is needed to extract descriptions, based on which new samples can be genera
 
 An example invocation of the generation script is given by the following command:
 ```bash
-MODEL=figaro-expert CHECKPOINT=./checkpoints/figaro-expert.ckpt python src/generate.py
+python src/generate.py --model figaro-expert --checkpoint ./checkpoints/figaro-expert.ckpt
 ```
 
 For models using the learned description (`figaro` and `figaro-learned`), a pre-trained VQ-VAE checkpoint needs to be provided as well:
 ```bash
-MODEL=figaro CHECKPOINT=./checkpoints/figaro.ckpt VAE_CHECKPOINT=./checkpoints/vq-vae.ckpt python src/generate.py
+python src/generate.py --model figaro --checkpoint ./checkpoints/figaro.ckpt --vae_checkpoint ./checkpoints/vq-vae.ckpt
 ```
 
 ## Evaluation
@@ -98,7 +98,7 @@ Refer to the previous section for how to generate samples yourself.
 
 Example usage:
 ```bash
-SAMPLE_DIR=./samples/figaro-expert python src/evaluate.py
+python src/evaluate.py --samples_dir ./samples/figaro-expert
 ```
 
 It has been pointed out that the order of the dataset files (from which the splits are calculated) is non-deterministic and depends on the OS.
