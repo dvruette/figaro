@@ -2,6 +2,10 @@
 
 Listen to the samples on [Soundcloud](https://soundcloud.com/user-751999449/sets/figaro-generating-symbolic-music-with-fine-grained-artistic-control).
 
+Paper: https://openreview.net/forum?id=NyR8OZFHw6i
+
+Colab Demo: https://colab.research.google.com/drive/1UAKFkbPQTfkYMq1GxXfGZOJXOXU_svo6
+
 ---
 
 - [FIGARO: Generating Symbolic Music with Fine-Grained Artistic Control](#figaro-generating-symbolic-music-with-fine-grained-artistic-control)
@@ -25,10 +29,10 @@ Prerequisites:
 ### Setup
 1. Clone this repository to your disk
 3. Install required packages (see requirements.txt).
-With Conda:
+With `venv`:
 ```bash
-conda create --name figaro python=3.9
-conda activate figaro
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
