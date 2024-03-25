@@ -40,6 +40,8 @@ def load_old_or_new_checkpoint(model_class, checkpoint):
   kwargs = pl_ckpt['hyper_parameters']
   if 'flavor' in kwargs:
     del kwargs['flavor']
+  if 'vae_run' in kwargs:
+    del kwargs['vae_run']
   model = model_class(**kwargs)
   state_dict = pl_ckpt['state_dict']
   # position_ids are no longer saved in the state_dict starting with transformers==4.31.0
