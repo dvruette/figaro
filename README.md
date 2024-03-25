@@ -141,25 +141,28 @@ Others
 | `LOGGING_DIR` | Folder for saving logs | `./logs` |
 | `N_WORKERS` | Number of workers to be used for the dataloader | available CPUs |
 
+
 ### Generation (`generate.py`)
-| Variable | Description | Default value |
+The generation script uses command line arguments instead of environment variables.
+| Argument | Description | Default value |
 |-|-|-|
-| `MODEL` | Specify which model will be loaded | |
-| `CHECKPOINT` | Path to the checkpoint for the specified model | |
-| `VAE_CHECKPOINT` | Path to the VQ-VAE checkpoint to be used for the learned description (if applicable) | |
-| `ROOT_DIR` | Folder containing MIDI files to extract descriptions from | `./lmd_full` |
-| `OUTPUT_DIR` | Folder to save generated MIDI samples to | `./samples` |
-| `MAX_ITER` | Max. number of tokens that should be generated | 16,000 |
-| `MAX_BARS` | Max. number of bars that should be generated | 32 |
-| `MAKE_MEDLEYS` | Set to `True` if descriptions should be combined into medleys. | `False` |
-| `N_MEDLEY_PIECES` | Number of pieces to be combined into one | 2 |
-| `N_MEDLEY_BARS` | Number of bars to take from each piece | 16 |
-| `VERBOSE` | Logging level, set to 0 for silent execution | 2 |
+| `--model` | Specify which model will be loaded | |
+| `--checkpoint` | Path to the checkpoint for the specified model | |
+| `--vae_checkpoint` | Path to the VQ-VAE checkpoint to be used for the learned description (if applicable) | |
+| `--lmd_dir` | Folder containing MIDI files to extract descriptions from | `./lmd_full` |
+| `--output_dir` | Folder to save generated MIDI samples to | `./samples` |
+| `--max_iter` | Max. number of tokens that should be generated | 16,000 |
+| `--max_bars` | Max. number of bars that should be generated | 32 |
+| `--make_medleys` | Set to `True` if descriptions should be combined into medleys. | `False` |
+| `--n_medley_pieces` | Number of pieces to be combined into one | 2 |
+| `--n_medley_bars` | Number of bars to take from each piece | 16 |
+| `--verbose` | Logging level, set to 0 for silent execution | 2 |
   
 
 ### Evaluation (`evaluate.py`)
-| Variable | Description | Default value |
+The evaluation script uses command line arguments instead of environment variables.
+| Argument | Description | Default value |
 |-|-|-|
-| `SAMPLE_DIR` | Folder containing generated samples which should be evaluated | `./samples` |
-| `OUT_FILE` | CSV file to which a detailed log of all metrics will be saved to | `./metrics.csv` |
-| `MAX_SAMPLES` | Limit the number of samples to be used for computing evaluation metrics | 1024 |
+| `--samples_dir` | Folder containing generated samples which should be evaluated | `./samples` |
+| `--output_file` | CSV file to which a detailed log of all metrics will be saved to | `./metrics.csv` |
+| `--max_samples` | Limit the number of samples to be used for computing evaluation metrics | 1024 |
