@@ -324,11 +324,11 @@ class Seq2SeqModule(pl.LightningModule):
     
     if self.description_flavor == 'both':
       z = { 'latents': batch['latents'], 'description': batch['description'] }
-      desc_bar_ids = batch['desc_bar_ids']
+      desc_bar_ids = batch['desc_bar_ids'].to(self.device)
     elif self.description_flavor == 'latent':
       z, desc_bar_ids = batch['latents'], None
     elif self.description_flavor == 'description':
-      z, desc_bar_ids = batch['description'], batch['desc_bar_ids']
+      z, desc_bar_ids = batch['description'], batch['desc_bar_ids'].to(self.device)
     else:
       z, desc_bar_ids = None, None
       
@@ -341,7 +341,7 @@ class Seq2SeqModule(pl.LightningModule):
     else:
       encoder_hidden_states = None
 
-    curr_bars = torch.zeros(batch_size).fill_(-1)
+    curr_bars = torch.zeros(batch_size).to(self.device).fill_(-1)
     # Sample using decoder until max_length is reached or all sequences are done
     for i in range(curr_len - 1, max_length):
       # print(f"\r{i+1}/{max_length}", end='')
